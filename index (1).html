@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Krayv Shop</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease, transform 0.15s ease; }
+  :root {
+    --bg: #0d0d12; --bg-card: #17171f; --bg-hover: #1e1e28;
+    --text: #fff; --muted: #8b8b9e;
+    --accent: #2a7de1; --accent-hover: #3d8ff0;
+    --accent-text: #fff;
+    --border: rgba(255,255,255,0.06);
+    --green: #22c55e;
+  }
+  body.light {
+    --bg: #f5f6fa; --bg-card: #ffffff; --bg-hover: #eef0f7;
+    --text: #111; --muted: #737380; --border: rgba(0,0,0,0.08);
+  }
+  body.beige {
+    --bg: #ece2cf; --bg-card: #f6ecdb; --bg-hover: #e6d9c0;
+    --text: #3a2f1e; --muted: #8a7a5c; --border: rgba(0,0,0,0.1);
+  }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    padding: 0 0 100px 0; min-height: 100vh;
+  }
+  .header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 20px; background: var(--bg);
+    position: sticky; top: 0; z-index: 50;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 800; color: var(--text); }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .nav { display: flex; gap: 4px; margin-left: 20px; }
+  .nav-item {
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; color: var(--muted);
+    cursor: pointer; background: transparent; border: none;
+  }
+  .nav-item.active { color: var(--text); background: var(--bg-card); }
+  .search-box {
+    flex: 1; max-width: 480px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; background: var(--bg-card);
+    border-radius: 10px; margin-left: auto;
+    border: 1px solid var(--border);
+  }
+  .search-box input { flex: 1; border: none; background: transparent; color: var(--text); font-size: 14px; outline: none; }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-icon { color: var(--muted); font-size: 16px; }
+  .header-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--bg-card); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; color: var(--text); flex-shrink: 0;
+  }
+  .main { display: flex; gap: 20px; padding: 20px; align-items: flex-start; }
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: var(--bg-card); border-radius: 14px; padding: 14px;
+    border: 1px solid var(--border);
+    position: sticky; top: 80px;
+  }
+  .sidebar-btn {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 12px; border-radius: 10px;
+    background: transparent; border: none;
+    color: var(--text); font-size: 14px; font-weight: 600;
+    cursor: pointer; margin-bottom: 4px; text-align: left;
+  }
+  .sidebar-btn:hover { background: var(--bg-hover); }
+  .sidebar-btn.active { background: var(--accent); color: var(--accent-text); }
+  .sidebar-filter { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .filter-title {
+    font-size: 12px; font-weight: 700; color: var(--muted);
+    margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .price-inputs { display: flex; gap: 8px; margin-bottom: 10px; }
+  .price-inputs input {
+    flex: 1; padding: 8px 10px; border-radius: 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-size: 13px; outline: none; width: 100%;
+  }
+  .apply-btn {
+    width: 100%; padding: 10px; border-radius: 8px;
+    background: var(--accent); color: var(--accent-text);
+    border: none; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .content { flex: 1; min-width: 0; }
+  .section-title { font-size: 18px; font-weight: 700; margin: 0 0 16px 0; color: var(--text); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; align-items: stretch; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 10px;
+    display: flex; flex-direction: column; height: 100%; cursor: pointer;
+  }
+  .card:hover { background: var(--bg-hover); }
+  .card-img-wrap {
+    width: 100%; aspect-ratio: 1/1; overflow: hidden;
+    border-radius: 10px; margin-bottom: 10px; background: #000; flex-shrink: 0;
+  }
+  .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card h3 {
+    font-size: 15px; font-weight: 700; margin: 0 0 4px 0; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card .desc {
+    font-size: 12px; color: var(--muted); margin: 0 0 10px 0; flex: 1;
+    overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .card-bottom { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+  .price-pill {
+    flex: 1; display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-radius: 10px;
+    background: var(--accent); color: var(--accent-text);
+    font-size: 14px; font-weight: 700; cursor: pointer; border: none;
+  }
+  .price-pill:hover { background: var(--accent-hover); }
+  .price-pill:disabled { background: var(--bg-hover); color: var(--muted); cursor: not-allowed; }
+  .cart-btn {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; color: var(--text); flex-shrink: 0;
+  }
+  .cart-btn:hover { background: var(--bg-hover); }
+  .old-price { font-size: 11px; color: var(--muted); text-decoration: line-through; margin-left: 6px; font-weight: 400; }
+  .floating {
+    position: fixed; bottom: 24px; right: 24px;
+    padding: 14px 24px; border-radius: 30px; border: none;
+    background: var(--accent); color: var(--accent-text);
+    font-size: 15px; font-weight: 700;
+    box-shadow: 0 8px 24px rgba(42,125,225,0.4);
+    cursor: pointer; z-index: 50;
+  }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: none; align-items: flex-end; z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.open { display: flex; }
+  .sheet {
+    width: 100%; max-height: 92vh; overflow-y: auto;
+    background: var(--bg); border-top-left-radius: 24px; border-top-right-radius: 24px;
+    padding: 24px;
+  }
+  .sheet h2 { margin: 0 0 14px 0; font-size: 20px; font-weight: 700; }
+  .close {
+    width: 100%; margin-top: 14px; padding: 12px;
+    border-radius: 12px; border: none;
+    background: var(--bg-card); color: var(--text);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .order {
+    width: 100%; margin-top: 14px; padding: 14px;
+    border-radius: 12px; border: none;
+    background: var(--accent); color: var(--accent-text);
+    font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  .item {
+    padding: 12px; border-radius: 12px;
+    background: var(--bg-card); margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    border: 1px solid var(--border);
+  }
+  .item .name { font-size: 14px; font-weight: 600; }
+  .item .line { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .remove {
+    width: 30px; height: 30px; border-radius: 8px; border: none;
+    background: rgba(255,80,80,0.15); color: #ff6b6b; cursor: pointer; font-size: 14px;
+  }
+  .totals { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 14px; }
+  .totals .row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .totals .final { font-size: 18px; font-weight: 700; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .step { display: flex; gap: 12px; padding: 14px; border-radius: 12px; background: var(--bg-card); margin-bottom: 8px; border: 1px solid var(--border); }
+  .step-num {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-text);
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-text { font-size: 13px; line-height: 1.5; }
+  .link { color: var(--accent); text-decoration: none; font-weight: 700; }
+  .amount { color: var(--green); font-weight: 700; }
+  .price-option {
+    padding: 14px; border-radius: 12px; background: var(--bg-card);
+    border: 2px solid transparent; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 15px; margin-bottom: 8px;
+  }
+  .price-option.selected { border-color: var(--accent); }
+  .price-option .label { font-weight: 600; }
+  .price-option .value { font-weight: 700; color: var(--accent); }
+  @media (max-width: 768px) {
+    .nav { display: none; }
+    .search-box { max-width: none; }
+    .sidebar { display: none; }
+    .main { padding: 14px; }
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .logo span { display: none; }
+    .logo-icon { width: 36px; height: 36px; font-size: 20px; }
+  }
+</style>
+</head>
+<body class="dark">
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🛍️</div>
+    <span>Krayv Shop</span>
+  </div>
+  <div class="nav">
+    <button class="nav-item active" onclick="switchTab('eng', this)">🔧 Инженерия</button>
+    <button class="nav-item" onclick="switchTab('gifts', this)">🎁 Подарки</button>
+  </div>
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Поиск товара..." oninput="renderGrid()">
+  </div>
+  <div class="header-btn" onclick="openSettings()">⚙️</div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <button class="sidebar-btn active" onclick="switchTab('eng', this)">🔧 Инженерия</button>
+    <button class="sidebar-btn" onclick="switchTab('gifts', this)">🎁 Подарки</button>
+
+    <div class="sidebar-filter">
+      <div class="filter-title">💰 Цена</div>
+      <div class="price-inputs">
+        <input type="number" id="priceMin" placeholder="От" value="0">
+        <input type="number" id="priceMax" placeholder="До" value="99999">
+      </div>
+      <button class="apply-btn" onclick="renderGrid()">Применить</button>
+    </div>
+
+    <div class="sidebar-filter">
+      <div class="filter-title">Сортировка</div>
+      <button class="sidebar-btn" onclick="setSort('default')">По умолчанию</button>
+      <button class="sidebar-btn" onclick="setSort('price-asc')">Дешевле</button>
+      <button class="sidebar-btn" onclick="setSort('price-desc')">Дороже</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="section-title" id="sectionTitle">🔧 Инженерия</div>
+    <div class="grid" id="grid-eng"></div>
+    <div class="grid" id="grid-gifts" style="display:none;"></div>
+  </div>
+</div>
+
+<button class="floating" onclick="openCart()">
+  🛒 Корзина <span id="cartCount"></span>
+</button>
+
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+
+    <div id="cartView" style="display:none;">
+      <h2>🛒 Корзина</h2>
+      <div id="cartContent"></div>
+    </div>
+
+    <div id="productView" style="display:none;">
+      <div class="card-img-wrap" style="aspect-ratio:1/1;border-radius:16px;">
+        <img id="pBigImg" src="" alt="">
+      </div>
+      <h2 id="pName" style="margin-top:16px;"></h2>
+      <p id="pDesc" style="color:var(--muted);margin:0 0 16px 0;font-size:14px;line-height:1.5;"></p>
+      <div id="pPriceBlock"></div>
+      <button class="order" id="pAddBtn" onclick="addFromProductView()">В корзину</button>
+      <button class="close" onclick="closeProduct()">← Назад</button>
+    </div>
+
+    <div id="settingsView" style="display:none;">
+      <h2>⚙️ Настройки</h2>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 10px 0;">Тема оформления</p>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <div onclick="setTheme('dark')" style="flex:1;padding:10px;border-radius:12px;background:var(--bg-card);border:2px solid transparent;cursor:pointer;text-align:center;font-size:12px;">
+          <div style="height:40px;background:#0d0d12;border-radius:8px;margin-bottom:6px;"></div>Тёмная
+        </div>
+        <div onclick="setTheme('light')" style="flex:1;padding:10px;border-radius:12px;background:var(--bg-card);border:2px solid transparent;cursor:pointer;text-align:center;font-size:12px;">
+          <div style="height:40px;background:#f5f6fa;border-radius:8px;margin-bottom:6px;"></div>Светлая
+        </div>
+        <div onclick="setTheme('beige')" style="flex:1;padding:10px;border-radius:12px;background:var(--bg-card);border:2px solid transparent;cursor:pointer;text-align:center;font-size:12px;">
+          <div style="height:40px;background:#ece2cf;border-radius:8px;margin-bottom:6px;"></div>Бежевая
+        </div>
+      </div>
+      <button class="close" onclick="closeAll()">Закрыть</button>
+    </div>
+
+    <div id="checkoutView" style="display:none;">
+      <h2>Оформление заказа</h2>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Убедитесь, что на вашем балансе достаточно звёзд</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text" id="payToBlock"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text" id="payDetailsBlock"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          Ожидайте проверки и выдачи заказа вплоть до 4 часов.
+          Если мы опоздаем — вернём <b>10%</b> от заказа
+          на все товары, кроме NFT.
+        </div>
+      </div>
+      <div style="margin-top:14px;margin-bottom:8px;text-align:center;font-size:14px;font-weight:700;color:var(--green);">Удачных покупок 🛍️</div>
+      <button class="close" onclick="backToCart()">← Назад в корзину</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  let cart = [];
+  let currentProductId = null;
+  let selectedOptionIdx = 0;
+  let currentSection = "eng";
+  let currentSort = "default";
+
+  const products = [
+    {
+      id: 1, section: "eng",
+      name: "софт sessionspam", price: 50,
+      description: "спам софт тг входы",
+      image: "https://i.ibb.co/pvzsB1FL/CYalvo-Egq-Vn1-VCg8x-B0-NU917s-hc4-ABoy-VPdb-B07x-G7-Emih-Or-C3w-INl-CXj-Yx-Wiyf-Exy-Bui-Katy-Vi-Vyf4-JFx.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 8, section: "eng",
+      name: "бот с огромной бд", price: 15,
+      description: "огромная бд и красивое оформление",
+      image: "https://i.ibb.co/4gYfpxDy/Zu-ACr-DRmwt-N6j-YR5-69n7-Vz-N7-Pose-Edb-M4jpcc-6-Xe-WJ2-Rqimaio-O8-JRivk4-Mp8wx5-PTSrkc-K6cem-TGw7-Ctt-PT83.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 13, section: "eng",
+      name: "бот осинт", price: 15,
+      description: "средняя бд, красивое оформление",
+      image: "https://i.ibb.co/d4Z5MSzD/IMG-20260930-234626-968.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 15, section: "eng",
+      name: "приват", price: 25,
+      description: "приватка с кучей интересного",
+      image: "https://i.ibb.co/jkkGBtrN/b19c0ca2f3415ad13f14c100f7133e07.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 16, section: "eng",
+      name: "бот химера", price: 15,
+      description: "только бот без вопросов и тд",
+      image: "https://i.ibb.co/gMP30vFT/IMG-20261001-135425-006.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 17, section: "eng",
+      name: "logger бот", price: 15,
+      description: "бот логгер",
+      image: "https://i.ibb.co/60bYwKsj/channels4-profile.jpg",
+      oldPrice: 25,
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 18, section: "eng",
+      name: "бот с хорошим бд", price: 15,
+      description: "средняя бд хороший бот",
+      image: "https://i.ibb.co/dJm4DBHG/IMG-20261001-132658-129.jpg",
+      oldPrice: 25,
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 21, section: "eng",
+      name: "куча мануалов", price: 25,
+      description: "обучения, безопасность, и тд",
+      image: "https://i.ibb.co/KcxQ0S39/manual-book-illustration-260nw-171729110.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 19, section: "eng",
+      name: "накрут бот", price: 15,
+      description: "накрут подписчики, лайки, реак не только тг",
+      image: "https://i.ibb.co/jPXb25jf/IMG-20261001-140715-429.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 20, section: "eng",
+      name: "Реклама", price: 0,
+      description: "лучшие физы",
+      image: "https://i.ibb.co/Pvr5psMC/IMG-20261001-102942.jpg",
+      isNegotiable: true,
+      noCommission: true, allowMultiple: false,
+      seller: "clardus"
+    },
+    {
+      id: 2, section: "eng",
+      name: "Деф", price: 150,
+      description: "защита от krayverov",
+      image: "https://i.ibb.co/1tSVqcPq/Rz9qwz6-TROMzj-GQ0-Qe-AGTCjdo3y4-KJe-Im-Hkz-Db-Wqt-E8hig-q-Chhb77-Okx-NDdfv-ZXugl-Bmn-SPW0-NNyi-KYYGRVOv.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 3, section: "eng",
+      name: "обучение", price: 150,
+      description: "обучение от Krayverov",
+      image: "https://i.ibb.co/1tSVqcPq/Rz9qwz6-TROMzj-GQ0-Qe-AGTCjdo3y4-KJe-Im-Hkz-Db-Wqt-E8hig-q-Chhb77-Okx-NDdfv-ZXugl-Bmn-SPW0-NNyi-KYYGRVOv.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 9, section: "eng",
+      name: "Деф (Arhangel)", price: 550,
+      description: "деф от @Arhangelovofficiall",
+      image: "https://i.ibb.co/FqyLCnc4/ne-CZ-uejag-Jkpk2-UJ4-GS-8-Ohg0-IAI-YAfh-CBHweh-IGRm-RTGm0x-Ea-Hy-Pda4utdv-PD3dyteqr-BWcn69rhc03c-Ouz-Jk.jpg",
+      noCommission: false, allowMultiple: false,
+      seller: "arhangel",
+      priceOptions: [
+        { label: "Навсегда", value: 550 },
+        { label: "Месяц",    value: 215 },
+        { label: "Пол года", value: 325 },
+        { label: "Год",      value: 425 }
+      ]
+    },
+    {
+      id: 10, section: "eng",
+      name: "обучение (Arhangel)", price: 500,
+      description: "обучение от @Arhangelovofficiall",
+      image: "https://i.ibb.co/FqyLCnc4/ne-CZ-uejag-Jkpk2-UJ4-GS-8-Ohg0-IAI-YAfh-CBHweh-IGRm-RTGm0x-Ea-Hy-Pda4utdv-PD3dyteqr-BWcn69rhc03c-Ouz-Jk.jpg",
+      noCommission: false, allowMultiple: false,
+      seller: "arhangel"
+    },
+    {
+      id: 11, section: "eng",
+      name: "Деф (с!иртей)", price: 175,
+      description: "деф от @bitchverification",
+      image: "https://i.ibb.co/hRBc1Nvg/IMG-20260930-214744-552.jpg",
+      noCommission: false, allowMultiple: false,
+      seller: "bitch",
+      priceOptions: [
+        { label: "Разово",    value: 175 },
+        { label: "Месяц",     value: 250 },
+        { label: "3 месяца",  value: 400 },
+        { label: "Год",       value: 550 },
+        { label: "Навсегда",  value: 650 },
+        { label: "VIP",       value: 1100 }
+      ]
+    },
+    {
+      id: 12, section: "eng",
+      name: "обучение (с!иртей)", price: 525,
+      description: "обучение от @bitchverification",
+      image: "https://i.ibb.co/hRBc1Nvg/IMG-20260930-214744-552.jpg",
+      noCommission: false, allowMultiple: false,
+      seller: "bitch",
+      priceOptions: [
+        { label: "Обучение", value: 1300 },
+        { label: "zн0z (от аккаунта)", value: 250 },
+        { label: "Приват", value: 525 }
+      ]
+    },
+    {
+      id: 4, section: "gifts",
+      name: "мишка от Krayverov", price: 25,
+      description: "мишка с росписью",
+      image: "https://i.ibb.co/Pz0H462D/OTEnx61k-1932-l-Pq-Bzb-XT0acqxlc-K9f-FXCMf-Dks-Wu-M3s-II63-I3-Zlh-CLb-VRF9-Ge-XNsj3lc-N0-IMqn-UR-Jj6-P-k.jpg",
+      noCommission: true, allowMultiple: true
+    },
+    {
+      id: 5, section: "gifts",
+      name: "рандом NFT", price: 600,
+      description: "рандомное нфт выше или ниже своей цены",
+      image: "https://i.ibb.co/Gvz3JYLB/50y-CDLtp-SN-f2-Lwl0-Sa2roya8n-RUYcie6-p7-BKlp-Qdo4g-JQMMOp-QKQ1jn-WHt2s-Seu-Um0sy-Rm-ZNV0chtj8x-J-gg.jpg",
+      noCommission: false, allowMultiple: true
+    },
+    {
+      id: 6, section: "gifts",
+      name: "рандом BLACK NFT", price: 3500,
+      description: "рандом нфт выше или ниже своей цены на блэк фоне",
+      image: "https://i.ibb.co/7tNrN4Kt/Lg-Kj-XAj-Ea-Bpprqqyrxq1x8k-PE-q1-U9ghy0b7utxnald3a-KSPv-Iof5-L4-BKeirm5-Z27-Bv6-L-lw1ze61ri-QAKBzp-RD.jpg",
+      noCommission: false, allowMultiple: true
+    },
+    {
+      id: 7, section: "gifts",
+      name: "бот по дешёвой аренде нфт", price: 15,
+      description: "2 звезды за 3 дня нфт",
+      image: "https://i.ibb.co/bMWjbZLY/GMSBiqf-SCob-Aq1ejk-JEy-AXke8-K4n-Tpy-Wo-Zv-W3zh-F30-Edh8plgf7-Zw-MDo-Ks-Tx-LDX8d-Z3-Nw-Cu7j-Gr-IFPx-Kr.jpg",
+      noCommission: true, allowMultiple: false
+    },
+    {
+      id: 14, section: "gifts",
+      name: "способ заработка звёзд", price: 15,
+      description: "5 минут - 15 звёзд",
+      image: "https://i.ibb.co/Pvv7c8sS/IMG-20260930-235100-900.jpg",
+      noCommission: true, allowMultiple: false
+    }
+  ];
+
+  (function() {
+    const saved = localStorage.getItem("krayv-theme") || "dark";
+    document.body.classList.remove("dark", "light", "beige");
+    if (saved === "light") document.body.classList.add("light");
+    else if (saved === "beige") document.body.classList.add("beige");
+  })();
+
+  function setTheme(name) {
+    document.body.classList.remove("dark", "light", "beige");
+    if (name === "light") document.body.classList.add("light");
+    else if (name === "beige") document.body.classList.add("beige");
+    localStorage.setItem("krayv-theme", name);
+  }
+
+  function setSort(sort) { currentSort = sort; renderGrid(); }
+
+  function switchTab(section, btn) {
+    currentSection = section;
+    document.querySelectorAll(".nav-item").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".sidebar-btn").forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("grid-eng").style.display = section === "eng" ? "grid" : "none";
+    document.getElementById("grid-gifts").style.display = section === "gifts" ? "grid" : "none";
+    document.getElementById("sectionTitle").textContent = section === "eng" ? "🔧 Инженерия" : "🎁 Подарки";
+    renderGrid();
+  }
+
+  function openSheet(viewId) {
+    document.querySelectorAll(".sheet > div").forEach(el => el.style.display = "none");
+    document.getElementById(viewId).style.display = "block";
+    document.getElementById("overlay").classList.add("open");
+  }
+
+  function overlayClick(e) {
+    if (e.target.id !== "overlay") return;
+    closeAll();
+  }
+
+  function closeAll() { document.getElementById("overlay").classList.remove("open"); }
+
+  function openSettings() { openSheet("settingsView"); }
+
+  function formatPrice(p) {
+    if (p.isNegotiable) return "Договорная";
+    if (p.priceOptions && p.priceOptions.length) {
+      const min = Math.min(...p.priceOptions.map(o => o.value));
+      return "от " + min + " ⭐";
+    }
+    return p.price + " ⭐";
+  }
+
+  function getFilteredProducts(section) {
+    let items = products.filter(p => p.section === section);
+    const search = (document.getElementById("searchInput")?.value || "").toLowerCase();
+    if (search) {
+      items = items.filter(p =>
+        p.name.toLowerCase().includes(search) ||
+        (p.description || "").toLowerCase().includes(search)
+      );
+    }
+    const min = parseInt(document.getElementById("priceMin")?.value) || 0;
+    const max = parseInt(document.getElementById("priceMax")?.value) || 999999;
+    items = items.filter(p => {
+      const price = p.priceOptions && p.priceOptions.length
+        ? Math.min(...p.priceOptions.map(o => o.value)) : p.price;
+      return price >= min && price <= max;
+    });
+    if (currentSort === "price-asc") items.sort((a, b) => a.price - b.price);
+    else if (currentSort === "price-desc") items.sort((a, b) => b.price - a.price);
+    return items;
+  }
+
+  function renderSection(sectionId, containerId) {
+    const items = getFilteredProducts(sectionId);
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (items.length === 0) {
+      el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 0;grid-column:1/-1;">Ничего не найдено</p>';
+      return;
+    }
+    el.innerHTML = items.map(p => {
+      const inCart = cart.find(i => i.product.id === p.id);
+      const disabled = inCart && !p.allowMultiple;
+      let priceDisplay = formatPrice(p);
+      if (p.oldPrice) priceDisplay = `<span>${p.price} ⭐</span><span class="old-price">${p.oldPrice} ⭐</span>`;
+      return `
+      <div class="card">
+        <div class="card-img-wrap" onclick="openProduct(${p.id})">
+          <img src="${p.image}" alt="${p.name}">
+        </div>
+        <h3 onclick="openProduct(${p.id})">${p.name}</h3>
+        <p class="desc" onclick="openProduct(${p.id})">${p.description}</p>
+        <div class="card-bottom">
+          <button class="price-pill" onclick="event.stopPropagation(); addToCart(${p.id})" ${disabled ? "disabled" : ""}>
+            ${disabled ? "Уже в корзине" : priceDisplay}
+          </button>
+          <button class="cart-btn" onclick="event.stopPropagation(); addToCart(${p.id})" ${disabled ? "disabled" : ""}>🛒</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  function renderGrid() {
+    renderSection("eng", "grid-eng");
+    renderSection("gifts", "grid-gifts");
+  }
+   function openProduct(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    currentProductId = id;
+    selectedOptionIdx = 0;
+    document.getElementById("pBigImg").src = p.image;
+    document.getElementById("pName").textContent = p.name;
+    document.getElementById("pDesc").textContent = p.description;
+    const block = document.getElementById("pPriceBlock");
+    if (p.priceOptions && p.priceOptions.length) {
+      block.innerHTML = p.priceOptions.map((o, idx) => `
+        <div class="price-option ${idx === 0 ? 'selected' : ''}"
+             onclick="selectOption(${idx})">
+          <span class="label">${o.label}</span>
+          <span class="value">${o.value} ⭐</span>
+        </div>
+      `).join("");
+    } else {
+      let priceHtml;
+      if (p.isNegotiable) priceHtml = "Договорная";
+      else {
+        priceHtml = p.price + " ⭐";
+        if (p.oldPrice) priceHtml += ` <span class="old-price">${p.oldPrice} ⭐</span>`;
+      }
+      block.innerHTML = `<p style="font-size:22px;font-weight:800;color:var(--accent);margin:0 0 16px 0;">${priceHtml}</p>`;
+    }
+    const btn = document.getElementById("pAddBtn");
+    const inCart = cart.find(i => i.product.id === id);
+    if (inCart && !p.allowMultiple) {
+      btn.disabled = true;
+      btn.textContent = "Уже в корзине";
+    } else {
+      btn.disabled = false;
+      btn.textContent = "В корзину";
+    }
+    openSheet("productView");
+  }
+
+  function selectOption(idx) {
+    selectedOptionIdx = idx;
+    document.querySelectorAll(".price-option").forEach((el, i) => {
+      el.classList.toggle("selected", i === idx);
+    });
+  }
+
+  function closeProduct() {
+    if (cart.length > 0) openCart();
+    else closeAll();
+  }
+
+  function addFromProductView() {
+    const p = products.find(x => x.id === currentProductId);
+    if (!p) return;
+    let finalPrice = p.price;
+    let optionLabel = null;
+    if (p.priceOptions && p.priceOptions.length) {
+      const opt = p.priceOptions[selectedOptionIdx];
+      finalPrice = opt.value;
+      optionLabel = opt.label;
+    }
+    const existing = getItem(p.id);
+    if (existing) {
+      if (!p.allowMultiple) { closeProduct(); return; }
+      existing.qty += 1;
+    } else {
+      cart.push({ product: p, qty: 1, chosenPrice: finalPrice, optionLabel });
+    }
+    renderGrid();
+    renderCart();
+    closeProduct();
+  }
+
+  function getItem(id) { return cart.find(i => i.product.id === id); }
+
+  function addToCart(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    if (p.priceOptions && p.priceOptions.length) { openProduct(id); return; }
+    const existing = getItem(id);
+    if (existing) {
+      if (!p.allowMultiple) return;
+      existing.qty += 1;
+    } else {
+      cart.push({ product: p, qty: 1, chosenPrice: p.price, optionLabel: null });
+    }
+    renderGrid();
+    renderCart();
+  }
+
+  function increaseQty(id) {
+    const item = getItem(id);
+    if (!item || !item.product.allowMultiple) return;
+    item.qty += 1;
+    renderGrid();
+    renderCart();
+  }
+
+  function decreaseQty(id) {
+    const item = getItem(id);
+    if (!item) return;
+    item.qty -= 1;
+    if (item.qty <= 0) cart = cart.filter(i => i.product.id !== id);
+    renderGrid();
+    renderCart();
+  }
+
+  function removeFromCart(id) {
+    cart = cart.filter(i => i.product.id !== id);
+    renderGrid();
+    renderCart();
+  }
+
+  function linePrice(item) { return (item.chosenPrice || item.product.price) * item.qty; }
+  function baseSum() { return cart.reduce((s, i) => s + linePrice(i), 0); }
+  function commissionSum() {
+    return cart.reduce((s, i) => {
+      if (i.product.noCommission) return s;
+      return s + linePrice(i) * 0.2;
+    }, 0);
+  }
+  function totalSum() { return baseSum() + commissionSum(); }
+  function totalCount() { return cart.reduce((s, i) => s + i.qty, 0); }
+
+  function renderCart() {
+    document.getElementById("cartCount").textContent = totalCount() > 0 ? "(" + totalCount() + ")" : "";
+    const c = document.getElementById("cartContent");
+    if (!c) return;
+    if (cart.length === 0) {
+      c.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px 0;">Пока пусто</p><button class="close" onclick="closeAll()">Закрыть</button>';
+      return;
+    }
+    let itemsHtml = cart.map(i => {
+      const unitPrice = i.chosenPrice || i.product.price;
+      const lineSum = unitPrice * i.qty;
+      const comm = i.product.noCommission ? 0 : lineSum * 0.2;
+      const commText = i.product.noCommission ? "Без комиссии" : "+ " + comm.toFixed(0) + " ⭐ комиссия";
+      const variantText = i.optionLabel ? " (" + i.optionLabel + ")" : "";
+      const qtyControls = i.product.allowMultiple ? `
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+          <button onclick="decreaseQty(${i.product.id})" style="width:28px;height:28px;border-radius:8px;border:none;background:var(--bg);color:var(--text);cursor:pointer;">−</button>
+          <span style="min-width:24px;text-align:center;">${i.qty}</span>
+          <button onclick="increaseQty(${i.product.id})" style="width:28px;height:28px;border-radius:8px;border:none;background:var(--bg);color:var(--text);cursor:pointer;">+</button>
+        </div>` : "";
+      return `
+      <div class="item">
+        <div style="flex:1;">
+          <div class="name">${i.product.name}${variantText}</div>
+          <div class="line">${unitPrice} ⭐ × ${i.qty} = ${lineSum} ⭐</div>
+          <div class="line">${commText}</div>
+          ${qtyControls}
+        </div>
+        <button class="remove" onclick="removeFromCart(${i.product.id})">✕</button>
+      </div>`;
+    }).join("");
+    const base = baseSum();
+    const comm = commissionSum();
+    const total = base + comm;
+    itemsHtml += `
+      <div class="totals">
+        <div class="row"><span>Товары:</span><span>${base} ⭐</span></div>
+        ${comm > 0 ? `<div class="row" style="color:var(--muted);font-size:13px;"><span>Комиссия (+20%):</span><span>+${comm.toFixed(0)} ⭐</span></div>` : ""}
+        <div class="row final"><span>Итого:</span><span>${total.toFixed(0)} ⭐</span></div>
+      </div>
+      <button class="order" onclick="showCheckout()">Оформить заказ</button>
+      <button class="close" onclick="closeAll()">Закрыть</button>`;
+    c.innerHTML = itemsHtml;
+  }
+
+  function openCart() { renderCart(); openSheet("cartView"); }
+
+  function showCheckout() {
+    if (cart.length === 0) return;
+    const sellers = { krayv: 0, arhangel: 0, bitch: 0, clardus: 0 };
+    let hasAd = false;
+    cart.forEach(i => {
+      const unitPrice = i.chosenPrice || i.product.price;
+      const lineSum = unitPrice * i.qty;
+      const comm = i.product.noCommission ? 0 : lineSum * 0.2;
+      const total = lineSum + comm;
+      let seller = i.product.seller || "krayv";
+      if (!i.product.seller) {
+        if (i.product.name && i.product.name.includes("Arhangel")) seller = "arhangel";
+        else if (i.product.name && i.product.name.includes("с!иртей")) seller = "bitch";
+      }
+      if (seller === "clardus") hasAd = true;
+      sellers[seller] += total;
+    });
+    const active = Object.keys(sellers).filter(k => sellers[k] > 0);
+    const links = { krayv: "@krayverov", arhangel: "@Arhangelovofficiall", bitch: "@bitchverification", clardus: "@clardus" };
+    if (hasAd) {
+      document.getElementById("payToBlock").innerHTML = "Напишите в личку <span class='link'>@clardus</span>";
+      document.getElementById("payDetailsBlock").innerHTML = "Обсудите с ним условия рекламы и отправьте звёзды подарками.";
+    } else {
+      const names = active.map(k => `<span class="link">${links[k]}</span>`).join(" и ");
+      document.getElementById("payToBlock").innerHTML = "Напишите в личку " + names;
+      if (active.length === 1) {
+        const k = active[0];
+        document.getElementById("payDetailsBlock").innerHTML =
+          `Отправьте звёзды подарками на сумму <span class="amount">${sellers[k].toFixed(0)}</span> ⭐ на <span class="link">${links[k]}</span> и отметьте под 1 из подарков то, что вы купили.<br>Пример: колечко и ракету с подписью «за деф»`;
+      } else {
+        let html = "Отправьте звёзды подарками разным продавцам:<br>";
+        active.forEach(k => { html += `• <span class="link">${links[k]}</span> — <span class="amount">${sellers[k].toFixed(0)}</span> ⭐<br>`; });
+        html += "И подпишите, что именно вы купили у каждого.";
+        document.getElementById("payDetailsBlock").innerHTML = html;
+      }
+    }
+    openSheet("checkoutView");
+  }
+
+  function backToCart() { openCart(); }
+ 
+  renderGrid();
+  renderCart();
+</script>
+
+</body>
+</html>
