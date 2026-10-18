@@ -808,7 +808,7 @@
       sellers[seller] += total;
     });
     const active = Object.keys(sellers).filter(k => sellers[k] > 0);
-    const links = { krayv: "@krayverov", arhangel: "@Arhangelovofficiall", bitch: "@bitchverification", clardus: "@clardus" };
+    const links = { Zмей: "@Zmeydox" };
     if (hasAd) {
       document.getElementById("payToBlock").innerHTML = "Напишите в личку <span class='link'>@clardus</span>";
       document.getElementById("payDetailsBlock").innerHTML = "Обсудите с ним условия рекламы и отправьте звёзды подарками.";
@@ -822,7 +822,7 @@
       } else {
         let html = "Отправьте звёзды подарками разным продавцам:<br>";
         active.forEach(k => { html += `• <span class="link">${links[k]}</span> — <span class="amount">${sellers[k].toFixed(0)}</span> ⭐<br>`; });
-        html += "И подпишите, что именно вы купили у каждого.";
+        html += "И подпишите, что именно вы купили у Змея.";
         document.getElementById("payDetailsBlock").innerHTML = html;
       }
     }
